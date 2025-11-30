@@ -1,41 +1,33 @@
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from BO.auth_bo import AuthBO
-
-auth_bo = AuthBO()
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+import BO.auth_bo
 
 
-@csrf_exempt
+@api_view(['POST'])
 def login_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            resultado = auth_bo.login(data.get('login'), data.get('senha'))
-            return JsonResponse(resultado, status=200)
-        except ValueError as e:
-            return JsonResponse({'erro': str(e)}, status=401)
-        except Exception:
-            return JsonResponse({'erro': 'Erro interno'}, status=500)
+    try:
+        data = request.data
+        resultado = BO.auth_bo.AuthBO().login(data.get('login'), data.get('senha'))
+        return Response(resultado, status=status.HTTP_200_OK)
 
-    return JsonResponse({'erro': 'Método não permitido'}, status=405)
+    except ValueError as e:
+        return Response({'erro': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception:
+        return Response({'erro': 'Erro interno'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@csrf_exempt
+@api_view(['POST'])
 def registrar_usuario_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            login = data.get('login')
-            senha = data.get('senha')
+    try:
+        data = request.data
+        login = data.get('login')
+        senha = data.get('senha')
 
-            resultado = auth_bo.criar_usuario(login, senha)
+        resultado = BO.auth_bo.AuthBO().criar_usuario(login, senha)
+        return Response(resultado, status=status.HTTP_201_CREATED)
 
-            return JsonResponse(resultado, status=201)
-
-        except ValueError as e:
-            return JsonResponse({'erro': str(e)}, status=400)
-        except Exception as e:
-            return JsonResponse({'erro': 'Erro interno ao cadastrar.'}, status=500)
-
-    return JsonResponse({'erro': 'Método não permitido'}, status=405)
+    except ValueError as e:
+        return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'erro': 'Erro interno ao cadastrar.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

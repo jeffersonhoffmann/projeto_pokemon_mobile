@@ -1,59 +1,56 @@
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist
 import BO.pokemon_bo
 
+
+@api_view(['GET'])
 def dashboard_view(request):
-    if request.method == 'GET':
-        dados = BO.pokemon_bo.PokemonBO().get_dashboard_data()
-        return JsonResponse(dados)
-    return None
+    dados = BO.pokemon_bo.PokemonBO().get_dashboard_data()
+    return Response(dados)
 
-@csrf_exempt
+
+@api_view(['GET'])
 def listar_pokemons_view(request):
-    if request.method == 'GET':
-        return JsonResponse(BO.pokemon_bo.PokemonBO().listar_pokemons(request.GET.get('tipo'),
-                                                                      request.GET.get('habilidade')), safe=False)
-    return None
+    # O DRF mantém o request.GET funcionando igual
+    tipo = request.GET.get('tipo')
+    habilidade = request.GET.get('habilidade')
 
-@csrf_exempt
+    lista = BO.pokemon_bo.PokemonBO().listar_pokemons(tipo, habilidade)
+    return Response(lista)
+
+
+@api_view(['POST'])
 def pokemon_criar_view(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            resposta = BO.pokemon_bo.PokemonBO().criar_pokemon(data)
-            return JsonResponse(resposta, status=201)
-        except ValueError as e:
-            return JsonResponse({'erro': str(e)}, status=400)
-        except Exception as e:
-            return JsonResponse({'erro': str(e)}, status=500)
+    try:
+        resposta = BO.pokemon_bo.PokemonBO().criar_pokemon(request.data)
+        return Response(resposta, status=status.HTTP_201_CREATED)
 
-    return None
+    except ValueError as e:
+        return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'erro': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@csrf_exempt
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def pokemon_view(request, pk):
-    if request.method == 'GET':
-        try:
-            return JsonResponse(BO.pokemon_bo.PokemonBO().obter_pokemon(pk))
-        except ObjectDoesNotExist:
-            return JsonResponse({'erro': 'Não encontrado'}, status=404)
+    try:
+        if request.method == 'GET':
+            return Response(BO.pokemon_bo.PokemonBO().obter_pokemon(pk))
 
-    elif request.method == 'PUT':
-        try:
-            data = json.loads(request.body)
-            resp = BO.pokemon_bo.PokemonBO().atualizar_pokemon(pk, data)
-            return JsonResponse(resp)
-        except ValueError as e:
-            return JsonResponse({'erro': str(e)}, status=400)
-        except ObjectDoesNotExist:
-            return JsonResponse({'erro': 'Não encontrado'}, status=404)
+        elif request.method == 'PUT':
+            # request.data substitui o json.loads
+            resp = BO.pokemon_bo.PokemonBO().atualizar_pokemon(pk, request.data)
+            return Response(resp)
 
-    elif request.method == 'DELETE':
-        try:
+        elif request.method == 'DELETE':
             resp = BO.pokemon_bo.PokemonBO().excluir_pokemon(pk)
-            return JsonResponse(resp)
-        except ObjectDoesNotExist:
-            return JsonResponse({'erro': 'Não encontrado'}, status=404)
+            return Response(resp)
 
-    return None
+    except ValueError as e:
+        return Response({'erro': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        return Response({'erro': 'Não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'erro': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
