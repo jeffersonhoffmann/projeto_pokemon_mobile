@@ -26,7 +26,6 @@ class PokemonBO:
         }
 
     def listar_pokemons(self, tipo=None, habilidade=None):
-        # Requisito[cite: 28]: Mostrar lista de pokemons
         pokemons = Pokemon.objects.filter(status=True)
 
         # Pesquisa com Like (icontains)

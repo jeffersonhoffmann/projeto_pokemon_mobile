@@ -2,4 +2,4 @@ Django==4.2.*
 psycopg2-binary==2.9.9
 django-cors-headers
 gunicorn
-dj-database-url
+dj-database-url==2.2.0

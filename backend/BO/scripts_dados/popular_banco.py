@@ -13,7 +13,6 @@ sys.path.append(str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'setup.settings')
 django.setup()
 
-# --- IMPORTS DO PROJETO ---
 from django.contrib.auth.models import User
 from api.models import Pokemon, Habilidade
 
