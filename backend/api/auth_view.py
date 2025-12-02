@@ -9,14 +9,11 @@ from django.contrib.auth.models import User
 def login_view(request):
     try:
         data = request.data
-        # Chama seu BO para validar senha (pode manter sua lógica atual)
         resultado_bo = BO.auth_bo.AuthBO().login(data.get('login'), data.get('senha'))
 
-        # Busca o usuário e gera/recupera o token
         user = User.objects.get(username=resultado_bo['usuario'])
         token, created = Token.objects.get_or_create(user=user)
 
-        # Retorna o token junto com os dados
         return Response({
             'token': token.key,
             'usuario': user.username,

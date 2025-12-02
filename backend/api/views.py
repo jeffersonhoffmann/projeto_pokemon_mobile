@@ -40,7 +40,6 @@ def pokemon_view(request, pk):
             return Response(BO.pokemon_bo.PokemonBO().obter_pokemon(pk))
 
         elif request.method == 'PUT':
-            # request.data substitui o json.loads
             resp = BO.pokemon_bo.PokemonBO().atualizar_pokemon(pk, request.data)
             return Response(resp)
 
